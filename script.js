@@ -8,33 +8,27 @@ searchInput.addEventListener('keyup', search)
 
 async function searchRepo (){
     autocomList.innerHTML=''
-    return await fetch(`https://api.github.com/search/repositories?q=${searchInput.value}`)
-    .then(res => {
-        return res.json()
+    const response = await fetch(`https://api.github.com/search/repositories?q=${searchInput.value}`)
+    const data = await response.json()
+    const currentSearch=[]
+    data.items.forEach(elem => {
+        currentSearch.push(elem.name)
     })
-    .then(res => {
-        const currentSearch=[]
-        res.items.forEach(elem => {
-            currentSearch.push(elem.name)
-        })
-        const arr = [...new Set(currentSearch)].filter((elem,i)=> i<5)
-        arr.forEach(elem=> {
-            const autocomElem = createAutocom(elem)
-            autocomElem.addEventListener('click', ()=> {
-                searchInput.value=''
-                autocomList.innerHTML=''
-                let index = currentSearch.indexOf(elem)
-                const currentItem = res.items[index];
-                const repoEl = createRepo(currentItem)
-                const deleteBtn = repoEl.querySelector('.repo__delete')
-                deleteBtn.addEventListener('click',()=>{
-                    repoList.removeChild(repoEl)
-                })
+    const arr = [...new Set(currentSearch)].slice(0,5)
+    arr.forEach(elem=> {
+        const autocomElem = createAutocom(elem)
+        autocomElem.addEventListener('click', ()=> {
+            searchInput.value=''
+            autocomList.innerHTML=''
+            let index = currentSearch.indexOf(elem)
+            const currentItem = data.items[index];
+            const repoEl = createRepo(currentItem)
+            const deleteBtn = repoEl.querySelector('.repo__delete')
+            deleteBtn.addEventListener('click',()=>{
+                repoList.removeChild(repoEl)
             })
         })
-        
     })
-
 };
 
 
@@ -50,7 +44,7 @@ function createRepo (elem){
     htmlElement.innerHTML= `<div class="repo__descr">
     <div class="repo__name">Name: ${elem.name}</div>
     <div class="repo__owner">Owner: ${elem.owner.login}</div>
-    <div class="repo__stars">Stars: ${elem.watchers}</div>
+    <div class="repo__stars">Stars: ${elem.stargazers_count}</div>
   </div>
   <button class="repo__delete"></button>`
     repoList.appendChild(htmlElement)
